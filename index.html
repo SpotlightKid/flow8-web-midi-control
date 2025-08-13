@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flow 8 Web MIDI Remote</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="ui.css">
+</head>
+<body>
+<header>
+  <h1>Flow 8 Web MIDI Remote</h1>
+  <div class="inline device-selectors">
+    <label>Out:
+      <select id="midiOut"></select>
+    </label>
+    <button id="refreshBtn">Refresh</button>
+    <button id="panicBtn" class="danger">Panic</button>
+    <span id="status">Initializing…</span>
+  </div>
+</header>
+
+<section class="tabs">
+  <div class="tab-bar">
+    <button data-tab="main" class="active">Main</button>
+    <button data-tab="scene">Scene & Options</button>
+    <button data-tab="fx">FX 1 / 2</button>
+  </div>
+
+  <div class="tab-content active" id="tab-main">
+    <main class="channels" id="channelsContainer">
+
+      <!-- Channel 1 -->
+      <div class="channel-strip" data-channel="1">
+        <div class="label-row">
+          <div class="label channel-label" id="label-ch1" contenteditable="true">CH 1</div>
+          <button class="btn-small phantom" id="phantom-ch1" data-channel="1" title="48V channel CH 1">48V</button>
+        </div>
+        <div class="section-sep"></div>
+        <div class="channel-input-controls">
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch1-gain" data-role="gain" data-channel="1" data-max="127" data-value="32">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Gain</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch1-lowcut" data-role="lowcut" data-channel="1" data-max="127" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Low Cut</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch1-comp" data-role="comp" data-channel="1" data-max="100" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Comp</div>
+          </div>
+          <button class="btn-small eq-btn" data-eq-channel="1" title="EQ channel CH 1">EQ</button>
+        </div>
+        <div class="section-sep"></div>
+        <div class="send-knobs">
+          <div class="knob-wrap">
+            <div class="knob send-knob" id="knob-ch1-fx1" data-channel="1" data-send="fx1" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">FX1</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob send-knob" id="knob-ch1-fx2" data-channel="1" data-send="fx2" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">FX2</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob send-knob" id="knob-ch1-mon1" data-channel="1" data-send="mon1" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">MON1</div>
+          </div>
+          <div class="knob-wrap mon2-send-wrap">
+            <div class="knob send-knob" id="knob-ch1-mon2" data-channel="1" data-send="mon2" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">MON2</div>
+          </div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="fader-zone">
+          <div class="fader-wrapper">
+            <div class="v-fader">
+              <input class="fader" id="fader-ch1" data-channel="1" type="range" min="0" max="127" value="100">
+            </div>
+          </div>
+            <div class="level-readout" id="lvl-ch1">Lvl: +0.0 dB</div>
+          <div class="pan-wrapper">
+            <input class="pan" id="pan-ch1" data-channel="1" type="range" min="0" max="127" value="64">
+            <div class="pan-readout" id="panval-ch1">Pan: C</div>
+          </div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="channel-controls">
+          <div class="channel-buttons">
+            <button class="btn-small mute" id="mute-ch1" data-channel="1" title="Mute channel CH 1">M</button>
+            <button class="btn-small reset-btn" data-channel="1" title="Reset channel CH 1">Reset</button>
+            <button class="btn-small solo" id="solo-ch1" data-channel="1" title="Solo channel CH 1">S</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel 2 -->
+      <div class="channel-strip" data-channel="2">
+        <div class="label-row">
+          <div class="label channel-label" id="label-ch2" contenteditable="true">CH 2</div>
+          <button class="btn-small phantom" id="phantom-ch2" data-channel="2" title="48V channel CH 2">48V</button>
+        </div>
+        <div class="section-sep"></div>
+        <div class="channel-input-controls">
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch2-gain" data-role="gain" data-channel="2" data-max="127" data-value="32">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Gain</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch2-lowcut" data-role="lowcut" data-channel="2" data-max="127" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Low Cut</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch2-comp" data-role="comp" data-channel="2" data-max="100" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Comp</div>
+          </div>
+          <button class="btn-small eq-btn" data-eq-channel="2" title="EQ channel CH 2">EQ</button>
+        </div>
+        <div class="section-sep"></div>
+        <div class="send-knobs">
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch2-fx1" data-channel="2" data-send="fx1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX1</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch2-fx2" data-channel="2" data-send="fx2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX2</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch2-mon1" data-channel="2" data-send="mon1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON1</div></div>
+          <div class="knob-wrap mon2-send-wrap"><div class="knob send-knob" id="knob-ch2-mon2" data-channel="2" data-send="mon2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON2</div></div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="fader-zone">
+          <div class="fader-wrapper">
+            <div class="v-fader">
+              <input class="fader" id="fader-ch2" data-channel="2" type="range" min="0" max="127" value="100">
+            </div>
+          </div>
+          <div class="level-readout" id="lvl-ch2">Lvl: +0.0 dB</div>
+          <div class="pan-wrapper">
+            <input class="pan" id="pan-ch2" data-channel="2" type="range" min="0" max="127" value="64">
+            <div class="pan-readout" id="panval-ch2">Pan: C</div>
+          </div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="channel-controls">
+          <div class="channel-buttons">
+            <button class="btn-small mute" id="mute-ch2" data-channel="2" title="Mute channel CH 2">M</button>
+            <button class="btn-small reset-btn" data-channel="2" title="Reset channel CH 2">Reset</button>
+            <button class="btn-small solo" id="solo-ch2" data-channel="2" title="Solo channel CH 2">S</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel 3 -->
+      <div class="channel-strip" data-channel="3">
+        <div class="label channel-label" id="label-ch3" contenteditable="true">CH 3</div>
+        <div class="section-sep"></div>
+        <div class="channel-input-controls">
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch3-gain" data-role="gain" data-channel="3" data-max="127" data-value="32">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Gain</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch3-lowcut" data-role="lowcut" data-channel="3" data-max="127" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Low Cut</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch3-comp" data-role="comp" data-channel="3" data-max="100" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Comp</div>
+          </div>
+          <button class="btn-small eq-btn" data-eq-channel="3" title="EQ channel CH 3">EQ</button>
+        </div>
+        <div class="section-sep"></div>
+        <div class="send-knobs">
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch3-fx1" data-channel="3" data-send="fx1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX1</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch3-fx2" data-channel="3" data-send="fx2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX2</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch3-mon1" data-channel="3" data-send="mon1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON1</div></div>
+          <div class="knob-wrap mon2-send-wrap"><div class="knob send-knob" id="knob-ch3-mon2" data-channel="3" data-send="mon2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON2</div></div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="fader-zone">
+          <div class="fader-wrapper">
+            <div class="v-fader">
+              <input class="fader" id="fader-ch3" data-channel="3" type="range" min="0" max="127" value="100">
+            </div>
+          </div>
+          <div class="level-readout" id="lvl-ch3">Lvl: +0.0 dB</div>
+          <div class="pan-wrapper">
+            <input class="pan" id="pan-ch3" data-channel="3" type="range" min="0" max="127" value="64">
+            <div class="pan-readout" id="panval-ch3">Pan: C</div>
+          </div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="channel-controls">
+          <div class="channel-buttons">
+            <button class="btn-small mute" id="mute-ch3" data-channel="3" title="Mute channel CH 3">M</button>
+            <button class="btn-small reset-btn" data-channel="3" title="Reset channel CH 3">Reset</button>
+            <button class="btn-small solo" id="solo-ch3" data-channel="3" title="Solo channel CH 3">S</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel 4 -->
+      <div class="channel-strip" data-channel="4">
+        <div class="label channel-label" id="label-ch4" contenteditable="true">CH 4</div>
+        <div class="section-sep"></div>
+        <div class="channel-input-controls">
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch4-gain" data-role="gain" data-channel="4" data-max="127" data-value="32">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Gain</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch4-lowcut" data-role="lowcut" data-channel="4" data-max="127" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Low Cut</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch4-comp" data-role="comp" data-channel="4" data-max="100" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Comp</div>
+          </div>
+          <button class="btn-small eq-btn" data-eq-channel="4" title="EQ channel CH 4">EQ</button>
+        </div>
+        <div class="section-sep"></div>
+        <div class="send-knobs">
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch4-fx1" data-channel="4" data-send="fx1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX1</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch4-fx2" data-channel="4" data-send="fx2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX2</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch4-mon1" data-channel="4" data-send="mon1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON1</div></div>
+          <div class="knob-wrap mon2-send-wrap"><div class="knob send-knob" id="knob-ch4-mon2" data-channel="4" data-send="mon2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON2</div></div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="fader-zone">
+          <div class="fader-wrapper">
+            <div class="v-fader">
+              <input class="fader" id="fader-ch4" data-channel="4" type="range" min="0" max="127" value="100">
+            </div>
+          </div>
+          <div class="level-readout" id="lvl-ch4">Lvl: +0.0 dB</div>
+          <div class="pan-wrapper">
+            <input class="pan" id="pan-ch4" data-channel="4" type="range" min="0" max="127" value="64">
+            <div class="pan-readout" id="panval-ch4">Pan: C</div>
+          </div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="channel-controls">
+          <div class="channel-buttons">
+            <button class="btn-small mute" id="mute-ch4" data-channel="4" title="Mute channel CH 4">M</button>
+            <button class="btn-small reset-btn" data-channel="4" title="Reset channel CH 4">Reset</button>
+            <button class="btn-small solo" id="solo-ch4" data-channel="4" title="Solo channel CH 4">S</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel 5 -->
+      <div class="channel-strip" data-channel="5">
+        <div class="label channel-label" id="label-ch5" contenteditable="true">CH 5/6</div>
+        <div class="section-sep"></div>
+        <div class="channel-input-controls">
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch5-gain" data-role="gain" data-channel="5" data-max="127" data-value="32">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Gain</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch5-lowcut" data-role="lowcut" data-channel="5" data-max="127" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Low Cut</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch5-comp" data-role="comp" data-channel="5" data-max="100" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Comp</div>
+          </div>
+          <button class="btn-small eq-btn" data-eq-channel="5" title="EQ channel CH 5/6">EQ</button>
+        </div>
+        <div class="section-sep"></div>
+        <div class="send-knobs">
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch5-fx1" data-channel="5" data-send="fx1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX1</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch5-fx2" data-channel="5" data-send="fx2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX2</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch5-mon1" data-channel="5" data-send="mon1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON1</div></div>
+          <div class="knob-wrap mon2-send-wrap"><div class="knob send-knob" id="knob-ch5-mon2" data-channel="5" data-send="mon2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON2</div></div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="fader-zone">
+          <div class="fader-wrapper">
+            <div class="v-fader">
+              <input class="fader" id="fader-ch5" data-channel="5" type="range" min="0" max="127" value="100">
+            </div>
+          </div>
+          <div class="level-readout" id="lvl-ch5">Lvl: +0.0 dB</div>
+          <div class="pan-wrapper">
+            <input class="pan" id="pan-ch5" data-channel="5" type="range" min="0" max="127" value="64">
+            <div class="pan-readout" id="panval-ch5">Pan: C</div>
+          </div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="channel-controls">
+          <div class="channel-buttons">
+            <button class="btn-small mute" id="mute-ch5" data-channel="5" title="Mute channel CH 5/6">M</button>
+            <button class="btn-small reset-btn" data-channel="5" title="Reset channel CH 5/6">Reset</button>
+            <button class="btn-small solo" id="solo-ch5" data-channel="5" title="Solo channel CH 5/6">S</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel 6 -->
+      <div class="channel-strip" data-channel="6">
+        <div class="label channel-label" id="label-ch6" contenteditable="true">CH 7/8</div>
+        <div class="section-sep"></div>
+        <div class="channel-input-controls">
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch6-gain" data-role="gain" data-channel="6" data-max="127" data-value="32">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Gain</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch6-lowcut" data-role="lowcut" data-channel="6" data-max="127" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Low Cut</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-ch6-comp" data-role="comp" data-channel="6" data-max="100" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">Comp</div>
+          </div>
+          <button class="btn-small eq-btn" data-eq-channel="6" title="EQ channel CH 7/8">EQ</button>
+        </div>
+        <div class="section-sep"></div>
+        <div class="send-knobs">
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch6-fx1" data-channel="6" data-send="fx1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX1</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch6-fx2" data-channel="6" data-send="fx2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX2</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch6-mon1" data-channel="6" data-send="mon1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON1</div></div>
+          <div class="knob-wrap mon2-send-wrap"><div class="knob send-knob" id="knob-ch6-mon2" data-channel="6" data-send="mon2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON2</div></div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="fader-zone">
+          <div class="fader-wrapper">
+            <div class="v-fader">
+              <input class="fader" id="fader-ch6" data-channel="6" type="range" min="0" max="127" value="100">
+            </div>
+          </div>
+          <div class="level-readout" id="lvl-ch6">Lvl: +0.0 dB</div>
+          <div class="pan-wrapper">
+            <input class="pan" id="pan-ch6" data-channel="6" type="range" min="0" max="127" value="64">
+            <div class="pan-readout" id="panval-ch6">Pan: C</div>
+          </div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="channel-controls">
+          <div class="channel-buttons">
+            <button class="btn-small mute" id="mute-ch6" data-channel="6" title="Mute channel CH 7/8">M</button>
+            <button class="btn-small reset-btn" data-channel="6" title="Reset channel CH 7/8">Reset</button>
+            <button class="btn-small solo" id="solo-ch6" data-channel="6" title="Solo channel CH 7/8">S</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel 7 (USB / BT) -->
+      <div class="channel-strip" data-channel="7">
+        <div class="label channel-label" id="label-ch7" contenteditable="true">USB / BT</div>
+        <div class="section-sep"></div>
+        <div class="channel-input-controls">
+          <button class="btn-small eq-btn" data-eq-channel="7" title="EQ channel USB / BT">EQ</button>
+        </div>
+        <div class="section-sep"></div>
+        <div class="send-knobs">
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch7-fx1" data-channel="7" data-send="fx1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX1</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch7-fx2" data-channel="7" data-send="fx2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">FX2</div></div>
+          <div class="knob-wrap"><div class="knob send-knob" id="knob-ch7-mon1" data-channel="7" data-send="mon1" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON1</div></div>
+          <div class="knob-wrap mon2-send-wrap"><div class="knob send-knob" id="knob-ch7-mon2" data-channel="7" data-send="mon2" data-value="0"><div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div></div><div class="knob-label">MON2</div></div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="fader-zone">
+          <div class="fader-wrapper">
+            <div class="v-fader">
+              <input class="fader" id="fader-ch7" data-channel="7" type="range" min="0" max="127" value="100">
+            </div>
+          </div>
+          <div class="level-readout" id="lvl-ch7">Lvl: +0.0 dB</div>
+          <div class="pan-wrapper">
+            <input class="pan" id="pan-ch7" data-channel="7" type="range" min="0" max="127" value="64">
+            <div class="pan-readout" id="panval-ch7">Pan: C</div>
+          </div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="channel-controls">
+          <div class="channel-buttons">
+            <button class="btn-small mute" id="mute-ch7" data-channel="7" title="Mute channel USB / BT">M</button>
+            <button class="btn-small reset-btn" data-channel="7" title="Reset channel USB / BT">Reset</button>
+            <button class="btn-small solo" id="solo-ch7" data-channel="7" title="Solo channel USB / BT">S</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FX 1/2 Bus Pair -->
+      <div class="channel-strip bus-strip fx-pair" id="fx-pair-strip">
+        <div class="label" id="label-fx-pair">FX 1/2</div>
+        <div class="section-sep"></div>
+        <div class="send-knobs">
+          <div class="knob-wrap">
+            <div class="knob" id="knob-fx1-limiter" data-role="fx1-limiter" data-channel="11" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">FX1 LIM</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-fx2-limiter" data-role="fx2-limiter" data-channel="12" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">FX2 LIM</div>
+          </div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="bus-faders two-cols">
+          <div class="bus-fader-col">
+            <div class="v-fader">
+              <input class="bus-fader" id="fader-fx1" data-bus="fx" data-midi-channel="11" type="range" min="0" max="127" value="110">
+            </div>
+            <div class="level-readout" id="lvl-fx1">+6 dB</div>
+          </div>
+          <div class="bus-fader-col">
+            <div class="v-fader">
+              <input class="bus-fader" id="fader-fx2" data-bus="fx" data-midi-channel="12" type="range" min="0" max="127" value="110">
+            </div>
+            <div class="level-readout" id="lvl-fx2">+6 dB</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MON 1/2 Bus Pair with Stereo Link -->
+      <div class="channel-strip bus-strip mon-pair" id="mon-pair-strip">
+        <div class="label" id="label-mon-pair">MON 1/2</div>
+        <div class="section-sep"></div>
+        <div class="stereo-link-section">
+          <button type="button" id="stereoLinkBtn" class="btn-small" title="Link MON1 and MON2 (hide MON2 controls)">Stereo Link</button>
+        </div>
+        <div class="section-sep"></div>
+        <div class="send-knobs">
+          <div class="knob-wrap">
+            <div class="knob" id="knob-mon1-limiter" data-role="mon1-limiter" data-channel="9" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">MON1 LIM</div>
+          </div>
+          <div class="knob-wrap mon2-limiter-wrap">
+            <div class="knob" id="knob-mon2-limiter" data-role="mon2-limiter" data-channel="10" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">MON2 LIM</div>
+          </div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="bus-faders two-cols">
+          <div class="bus-fader-col">
+            <div class="v-fader">
+              <input class="bus-fader" id="fader-mon1" data-bus="mon" data-midi-channel="9" type="range" min="0" max="127" value="110">
+            </div>
+            <div class="level-readout" id="lvl-mon1">+6 dB</div>
+          </div>
+          <div class="bus-fader-col mon2-fader-col">
+            <div class="v-fader">
+              <input class="bus-fader" id="fader-mon2" data-bus="mon" data-midi-channel="10" type="range" min="0" max="127" value="110">
+            </div>
+            <div class="level-readout" id="lvl-mon2">+6 dB</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Master (right-most) -->
+      <div class="channel-strip master" id="master-strip">
+        <div class="label" id="label-master">MASTER</div>
+        <div class="section-sep"></div>
+        <div class="send-knobs">
+          <div class="knob-wrap">
+            <div class="knob" id="knob-master-limiter" data-role="master-limiter" data-value="0">
+              <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+            </div><div class="knob-label">LIM</div>
+          </div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="fader-zone master-fader-zone">
+          <div class="fader-wrapper">
+            <div class="v-fader">
+              <input id="fader-master" type="range" min="0" max="127" value="110">
+            </div>
+          </div>
+          <div class="level-readout" id="lvl-master">Lvl: +6.9 dB</div>
+        </div>
+        <div class="section-sep"></div>
+        <div class="balance-wrapper">
+          <input id="balance-master" type="range" min="0" max="127" value="64">
+          <div class="balance-readout" id="bal-master">Bal: C</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="tab-content" id="tab-scene">
+    <fieldset>
+      <legend>Scene & Options</legend>
+      <div class="inline">
+        <button id="saveSceneBtn" class="primary">Save</button>
+        <button id="loadSceneBtn">Load</button>
+        <button id="clearSceneBtn">Clear</button>
+      </div>
+      <label class="inline opt">
+        <input type="checkbox" id="exclusiveSolo"> Exclusive Solo
+      </label>
+      <label class="inline opt">
+        <input type="checkbox" id="logTaper"> Log Fader Taper (Outbound)
+      </label>
+      <div class="notice">
+        Stereo Link (MON 1/2) hides MON2 controls & sends. State is saved in scene.
+      </div>
+    </fieldset>
+
+    <fieldset class="snapshots">
+      <legend>Snapshots</legend>
+      <div id="snapshotButtons">
+        <button class="btn-small" data-snapshot="1">SN 1</button><button class="btn-small" data-snapshot="2">SN 2</button>
+        <button class="btn-small" data-snapshot="3">SN 3</button><button class="btn-small" data-snapshot="4">SN 4</button>
+        <button class="btn-small" data-snapshot="5">SN 5</button><button class="btn-small" data-snapshot="6">SN 6</button>
+        <button class="btn-small" data-snapshot="7">SN 7</button><button class="btn-small" data-snapshot="8">SN 8</button>
+        <button class="btn-small" data-snapshot="9">SN 9</button><button class="btn-small" data-snapshot="10">SN 10</button>
+        <button class="btn-small" data-snapshot="11">SN 11</button><button class="btn-small" data-snapshot="12">SN 12</button>
+        <button class="btn-small" data-snapshot="13">SN 13</button><button class="btn-small" data-snapshot="14">SN 14</button>
+        <button class="btn-small" data-snapshot="15">SN 15</button><button class="btn-small" data-snapshot="16">SN 16</button>
+      </div>
+    </fieldset>
+  </div>
+
+  <div class="tab-content" id="tab-fx">
+    <fieldset class="fx-block">
+      <legend>FX 1</legend>
+      <div class="inline" style="flex-wrap:wrap;">
+        <label class="small-col">Preset
+          <select id="fx1Preset">
+            <option value="1">1. Ambience</option>
+            <option value="2">2. Perc. Reverb 1</option>
+            <option value="3">3. Perc. Reverb 2</option>
+            <option value="4">4. Guitar Reverb 1</option>
+            <option value="5">5. Guitar Reverb 2</option>
+            <option value="6">6. Chamber</option>
+            <option value="7">7. Room</option>
+            <option value="8">8. Concert</option>
+            <option value="9">9. Church</option>
+            <option value="10">10. Cathedral</option>
+            <option value="11">11. Temple</option>
+            <option value="12">12. Stadium</option>
+            <option value="13">13. Flanger</option>
+            <option value="14">14. Soft Chorus</option>
+            <option value="15">15. Warm Chorus</option>
+            <option value="16">16. Deep Chorus</option>
+          </select>
+        </label>
+      </div>
+      <div class="inline knob-row">
+        <div class="knob-wrap">
+          <div class="knob" id="knob-fx1-param1" data-role="fx1-param1" data-value="0">
+            <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+          </div>
+          <div class="knob-label">Param 1</div>
+        </div>
+      </div>
+      <div class="radio-group">
+        <span class="radio-label">Param 2:</span>
+        <label><input type="radio" name="fx1-param2" value="0" checked> Value A</label>
+        <label><input type="radio" name="fx1-param2" value="127"> Value B</label>
+      </div>
+    </fieldset>
+
+    <fieldset class="fx-block">
+      <legend>FX 2</legend>
+      <div class="inline" style="flex-wrap:wrap;">
+        <label class="small-col">Preset
+          <select id="fx2Preset">
+            <option value="1">1. Delay 1/1</option>
+            <option value="2">2. Delay 1/2</option>
+            <option value="3">3. Delay 1/3</option>
+            <option value="4">4. Delay 2/1</option>
+            <option value="5">5. Echo 1/1</option>
+            <option value="6">6. Echo 1/2</option>
+            <option value="7">7. Echo 1/3</option>
+            <option value="8">8. Echo 2/1</option>
+            <option value="9">9. Wide Echo</option>
+            <option value="10">10. Ping Pong</option>
+            <option value="11">11. Ping Pong 1/3</option>
+            <option value="12">12. Ping Pong R&gt;L</option>
+            <option value="13">13. Flanger</option>
+            <option value="14">14. Soft Chorus</option>
+            <option value="15">15. Warm Chorus</option>
+            <option value="16">16. Deep Chorus</option>
+          </select>
+        </label>
+        <button id="tapTempoBtn" title="Tap Tempo (Note placeholder)">Tap</button>
+      </div>
+      <div class="inline knob-row">
+        <div class="knob-wrap">
+          <div class="knob" id="knob-fx2-param1" data-role="fx2-param1" data-value="0">
+            <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+          </div>
+          <div class="knob-label">Param 1</div>
+        </div>
+      </div>
+      <div class="radio-group">
+        <span class="radio-label">Param 2:</span>
+        <label><input type="radio" name="fx2-param2" value="0" checked> Value A</label>
+        <label><input type="radio" name="fx2-param2" value="127"> Value B</label>
+      </div>
+    </fieldset>
+  </div>
+</section>
+
+<!-- Shared EQ Dialog -->
+<dialog id="eqDialog">
+  <form method="dialog" class="eq-form">
+    <div class="eq-header">
+      <span id="eqDialogTitle">EQ</span>
+      <button type="button" id="eqCloseBtn" class="btn-small">X</button>
+    </div>
+    <div class="eq-body">
+      <div class="knob-wrap">
+        <div class="knob eq-knob" id="eq-low" data-role="eq-low" data-max="127" data-value="64">
+          <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+        </div><div class="knob-label">Low (100 Hz)</div>
+      </div>
+      <div class="knob-wrap">
+        <div class="knob eq-knob" id="eq-lowmid" data-role="eq-lowmid" data-max="127" data-value="64">
+          <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+        </div><div class="knob-label">Low Mid (500 Hz)</div>
+      </div>
+      <div class="knob-wrap">
+        <div class="knob eq-knob" id="eq-himid" data-role="eq-himid" data-max="127" data-value="64">
+          <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+        </div><div class="knob-label">Hi Mid (2000 Hz)</div>
+      </div>
+      <div class="knob-wrap">
+        <div class="knob eq-knob" id="eq-hi" data-role="eq-hi" data-max="127" data-value="64">
+          <div class="dial-fill"></div><div class="dial-hole"></div><div class="kv"></div>
+        </div><div class="knob-label">Hi (12 kHz)</div>
+      </div>
+    </div>
+    <div class="eq-footer">
+      <button type="button" id="eqResetBtn" class="btn-small">Flat</button>
+      <button type="button" id="eqCloseBtn2" class="btn-small primary">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="flow8.js"></script>
+</body>
+</html>
