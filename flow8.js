@@ -1,8 +1,6 @@
-/* Flow 8 Web MIDI Remote - v13
- * Added Stereo Link toggle for MON 1/2 bus:
- *  - Hides/disables (by hiding) all MON2 controls: channel send dials (mon2), MON2 limiter, MON2 fader & readout.
- *  - State saved in scene (busPairs.mon.stereoLink) and restored.
- *  - UI updated dynamically when toggled or scene loaded.
+/* Flow 8 Web MIDI Remote - v14
+ * Change: 48V (phantom) buttons now require a >2s hold to activate, single click to deactivate.
+ * Tooltip updated to include 'Click and hold to activate'.
  */
 
 const BOOL_ON=127, BOOL_OFF=0;
@@ -25,10 +23,10 @@ const FX1_CHANNEL=14, FX2_CHANNEL=15, FX_PARAM1_CC=1, FX_PARAM2_CC=2, SNAPSHOT_C
 const TAP_TEMPO_CHANNEL=16, TAP_TEMPO_NOTE=60;
 
 const NUM_CHANNELS=7;
-const SCENE_KEY='flow8_scene_static_v13';
+const SCENE_KEY='flow8_scene_static_v14';
 
 const FX1_PRESETS=['Ambience','Perc. Reverb 1','Perc. Reverb 2','Guitar Reverb 1','Guitar Reverb 2','Chamber','Room','Concert','Church','Cathedral','Temple','Stadium','Flanger','Soft Chorus','Warm Chorus','Deep Chorus'];
-const FX2_PRESETS=['Delay 1/1','Delay 1/2','Delay 1/3','Delay 2/1','Echo 1/1','Echo 1/2','Echo 1/3','Echo 2/1','Wide Echo','Ping Pong','Ping Pong 1/3','Ping Pong R>L','Flanger','Soft Chorus','Warm Chorus','Deep Chorus'];
+const FX2_PRESETS=['Delay 1/1','Delay 1/2','Delay 1/3','Delay 2/1','Echo 1/1','Echo 1/2','Echo 1/3','Echo 2/1','Wide Echo','Ping Pong','Ping Pong 1/3','Echo R>L','Flanger','Soft Chorus','Warm Chorus','Deep Chorus'];
 
 const DIAL_LABEL_COLOR_MAP={
   fx1:'--accent', fx2:'--accent-alt', mon1:'--accent-green', mon2:'--accent-warm',
@@ -49,7 +47,7 @@ const masterState={ level:110, limiter:0, balance:64 };
 let fxState={ fx1:{preset:1,param1:0,param2:0}, fx2:{preset:1,param1:0,param2:0} };
 let currentEQChannel=null;
 
-/* Bus pair state with separate limiters and stereo link flag for MON */
+/* Bus pair state (with stereo link) */
 const busPairs={
   fx:{ fx1Limiter:0, fx1Level:110, fx2Limiter:0, fx2Level:110 },
   mon:{ mon1Limiter:0, mon1Level:110, mon2Limiter:0, mon2Level:110, stereoLink:false }
@@ -169,7 +167,6 @@ function setKnobValue(knob,raw,role,max=127){
 }
 function knobChanged(value,role,send,channel,max){
   if(send && channel){
-    // If stereo link active and send is mon2, ignore changes (hidden anyway)
     if(send==='mon2' && busPairs.mon.stereoLink) return;
     channelState[channel][send]=value;
     const cc = send==='fx1'?CC_SEND_FX1: send==='fx2'?CC_SEND_FX2: send==='mon1'?CC_SEND_MON1: send==='mon2'?CC_SEND_MON2: null;
@@ -209,7 +206,7 @@ function knobChanged(value,role,send,channel,max){
   }
 }
 function updateSendKnob(channel,send,value){
-  if(send==='mon2' && busPairs.mon.stereoLink) return; // ignore hidden
+  if(send==='mon2' && busPairs.mon.stereoLink) return;
   const knob=qs(`.knob.send-knob[data-channel="${channel}"][data-send="${send}"]`);
   if(knob) setKnobValue(knob,value,null,127);
 }
@@ -270,18 +267,80 @@ function resetEQ(channel){
 /* ===== STEREO LINK UI ===== */
 function applyStereoLinkUI(){
   const linked=busPairs.mon.stereoLink;
-  const btn=qs('#stereoLinkBtn');
-  if(btn) btn.classList.toggle('active',linked);
-  // Hide/show MON2 limiter
-  const mon2LimiterWrap=qs('#knob-mon2-limiter')?.closest('.knob-wrap');
-  if(mon2LimiterWrap) mon2LimiterWrap.classList.toggle('hidden',linked);
-  // Hide/show MON2 fader column
-  const mon2FaderCol=qs('.mon2-fader-col');
-  if(mon2FaderCol) mon2FaderCol.classList.toggle('hidden',linked);
-  // Hide/show all MON2 send knobs (channels 1-7)
+  qs('#stereoLinkBtn')?.classList.toggle('active',linked);
+  qs('#knob-mon2-limiter')?.closest('.knob-wrap')?.classList.toggle('hidden',linked);
+  qs('.mon2-fader-col')?.classList.toggle('hidden',linked);
   qsa('.knob.send-knob[data-send="mon2"]').forEach(kn=>{
-    const wrap=kn.closest('.knob-wrap');
-    if(wrap) wrap.classList.toggle('hidden',linked);
+    kn.closest('.knob-wrap')?.classList.toggle('hidden',linked);
+  });
+}
+
+/* ===== PHANTOM (48V) HOLD HANDLERS ===== */
+function bindPhantomButtons(){
+  qsa('.btn-small.phantom').forEach(btn=>{
+    if(btn.__boundPhantom) return;
+    btn.__boundPhantom=true;
+    let holdTimer=null;
+    let holdActivated=false;
+    const HOLD_MS=2000;
+    const channel=+btn.dataset.channel;
+
+    function activate(){
+      channelState[channel].phantom=true;
+      sendCC(CC_48V,BOOL_ON,channel);
+      btn.classList.add('active');
+      holdActivated=true;
+      holdTimer=null;
+      saveSceneDebounced();
+      setStatus(`48V ON (CH ${channel})`);
+    }
+    function deactivate(){
+      channelState[channel].phantom=false;
+      sendCC(CC_48V,BOOL_OFF,channel);
+      btn.classList.remove('active');
+      saveSceneDebounced();
+      setStatus(`48V OFF (CH ${channel})`);
+    }
+    function clearHold(){
+      if(holdTimer){
+        clearTimeout(holdTimer);
+        holdTimer=null;
+      }
+      btn.classList.remove('hold-arming');
+    }
+
+    btn.addEventListener('pointerdown',e=>{
+      if(channelState[channel].phantom){
+        // Active: will toggle off on pointerup (normal click)
+        return;
+      }
+      holdActivated=false;
+      btn.classList.add('hold-arming');
+      holdTimer=setTimeout(()=>{
+        activate();
+        btn.classList.remove('hold-arming');
+      },HOLD_MS);
+    });
+
+    btn.addEventListener('pointerup',e=>{
+      if(channelState[channel].phantom){
+        if(holdActivated){
+          // Just activated via hold; do not immediately deactivate
+          holdActivated=false;
+        } else {
+          // Normal click to deactivate
+          deactivate();
+        }
+      } else {
+        // Not active and released before hold finished -> cancel
+        clearHold();
+      }
+    });
+    ['pointerleave','pointercancel'].forEach(ev=>{
+      btn.addEventListener(ev,()=>{
+        if(!channelState[channel].phantom) clearHold();
+      });
+    });
   });
 }
 
@@ -311,11 +370,11 @@ function bindUI(){
   qsa('.bus-fader').forEach(f=>{
     f.addEventListener('input',()=>{
       const midiCh=+f.dataset.midiChannel;
-      if(midiCh===MON2_CH && busPairs.mon.stereoLink) return; // disabled
+      if(midiCh===MON2_CH && busPairs.mon.stereoLink) return;
       const val=+f.value;
       sendCC(CC_FADER,mapFaderOut(val),midiCh);
-      const readoutId=f.id.replace('fader-','lvl-');
-      updateBusReadout(readoutId,val);
+      const id=f.id.replace('fader-','lvl-');
+      updateBusReadout(id,val);
       if(midiCh===FX1_CH) busPairs.fx.fx1Level=val;
       else if(midiCh===FX2_CH) busPairs.fx.fx2Level=val;
       else if(midiCh===MON1_CH) busPairs.mon.mon1Level=val;
@@ -349,7 +408,7 @@ function bindUI(){
       for(const k in channelState){
         if(+k!==ch && channelState[k].solo){
           channelState[k].solo=false;
-          sendCC(CC_SOLO,BOOL_OFF,+k);
+            sendCC(CC_SOLO,BOOL_OFF,+k);
           updateChannelButtons(+k);
         }
       }
@@ -357,13 +416,6 @@ function bindUI(){
     channelState[ch].solo=activate;
     sendCC(CC_SOLO,channelState[ch].solo?BOOL_ON:BOOL_OFF,ch);
     updateChannelButtons(ch);
-    saveSceneDebounced();
-  }));
-  qsa('.btn-small.phantom').forEach(b=>b.addEventListener('click',()=>{
-    const ch=+b.dataset.channel;
-    channelState[ch].phantom=!channelState[ch].phantom;
-    sendCC(CC_48V,channelState[ch].phantom?BOOL_ON:BOOL_OFF,ch);
-    b.classList.toggle('active',channelState[ch].phantom);
     saveSceneDebounced();
   }));
 
@@ -375,8 +427,8 @@ function bindUI(){
       gain:32,lowcut:0,comp:0,
       eq:{low:64,lowmid:64,himid:64,hi:64}
     });
-    const fader=qs(`#fader-ch${ch}`); if(fader){ fader.value=100; }
-    const pan=qs(`#pan-ch${ch}`); if(pan){ pan.value=64; }
+    const fader=qs(`#fader-ch${ch}`); if(fader) fader.value=100;
+    const pan=qs(`#pan-ch${ch}`); if(pan) pan.value=64;
     updateLevelReadout(ch);
     updatePanReadout(ch);
     ['fx1','fx2','mon1','mon2'].forEach(s=>updateSendKnob(ch,s,0));
@@ -390,7 +442,7 @@ function bindUI(){
     sendCC(CC_MUTE,BOOL_OFF,ch);
     sendCC(CC_SOLO,BOOL_OFF,ch);
     sendCC(CC_SEND_FX1,0,ch); sendCC(CC_SEND_FX2,0,ch);
-    sendCC(CC_SEND_MON1,0,ch); sendCC(CC_SEND_MON2,0,ch);
+    sendCC(CC_SEND_MON1,0,ch); if(!busPairs.mon.stereoLink) sendCC(CC_SEND_MON2,0,ch);
     sendCC(CC_PAN,64,ch);
     if(ch<=6){
       sendCC(CC_GAIN,32,ch);
@@ -401,7 +453,10 @@ function bindUI(){
       sendCC(CC_EQ_HIMID,64,ch);
       sendCC(CC_EQ_HI,64,ch);
     }
-    if(ch<=2) sendCC(CC_48V,channelState[ch].phantom?BOOL_ON:BOOL_OFF,ch);
+    if(ch<=2){
+      // Phantom state unchanged (only toggled via hold)
+      sendCC(CC_48V,channelState[ch].phantom?BOOL_ON:BOOL_OFF,ch);
+    }
     updateChannelButtons(ch);
     saveSceneDebounced();
   }));
@@ -470,7 +525,10 @@ function bindUI(){
   // Scene buttons
   qs('#saveSceneBtn')?.addEventListener('click',()=>{saveScene(); setStatus('Scene saved');});
   qs('#loadSceneBtn')?.addEventListener('click',loadScene);
-  qs('#clearSceneBtn')?.addEventListener('click',()=>{localStorage.removeItem(SCENE_KEY); setStatus('Scene cleared');});
+  qs('#clearSceneBtn')?.addEventListener('click',()=>{
+    localStorage.removeItem(SCENE_KEY);
+    setStatus('Scene cleared');
+  });
 
   // Tabs
   qsa('.tab-bar button').forEach(b=>b.addEventListener('click',()=>{
@@ -485,6 +543,9 @@ function bindUI(){
   qs('#panicBtn')?.addEventListener('click',panic);
   qs('#midiOut')?.addEventListener('change',e=>selectMIDIOut(e.target.value));
 
+  // Phantom (48V) special handlers
+  bindPhantomButtons();
+
   // Bind EQ dialog knobs
   attachKnobHandlers(qsa('#eqDialog .knob'));
 }
@@ -493,12 +554,16 @@ function bindUI(){
 function updateChannelTooltips(ch,label){
   qs(`#mute-ch${ch}`)?.setAttribute('title',`Mute channel ${label}`);
   qs(`#solo-ch${ch}`)?.setAttribute('title',`Solo channel ${label}`);
-  if(ch<=2) qs(`#phantom-ch${ch}`)?.setAttribute('title',`48V channel ${label}`);
+  if(ch<=2){
+    qs(`#phantom-ch${ch}`)?.setAttribute('title',`48V channel ${label} (Click and hold to activate)`);
+  }
 }
 function updateChannelButtons(ch){
   qs(`#mute-ch${ch}`)?.classList.toggle('active',channelState[ch].mute);
   qs(`#solo-ch${ch}`)?.classList.toggle('active',channelState[ch].solo);
-  if(ch<=2) qs(`#phantom-ch${ch}`)?.classList.toggle('active',channelState[ch].phantom);
+  if(ch<=2){
+    qs(`#phantom-ch${ch}`)?.classList.toggle('active',channelState[ch].phantom);
+  }
 }
 
 /* ===== SNAPSHOTS ===== */
@@ -535,8 +600,6 @@ function selectMIDIOut(id){
 }
 function sendCC(cc,val,ch){ if(!midiOut) return; midiOut.send([0xB0|((ch-1)&0x0F), cc&0x7F, val&0x7F]); }
 function sendProgramChange(pc,ch){ if(!midiOut) return; midiOut.send([0xC0|((ch-1)&0x0F),(pc-1)&0x7F]); }
-function sendNoteOn(note,vel,ch){ if(!midiOut) return; midiOut.send([0x90|((ch-1)&0x0F),note&0x7F,vel&0x7F]); }
-function sendNoteOff(note,ch){ if(!midiOut) return; midiOut.send([0x80|((ch-1)&0x0F),note&0x7F,0]); }
 
 /* ===== KNOB RAW UPDATE ===== */
 function setKnobRaw(knob,raw,role){
@@ -581,16 +644,15 @@ function loadScene(){
       label:c.name || defaultLabelFor(c.channel)
     });
     const ch=c.channel;
-    const fader=qs(`#fader-ch${ch}`); if(fader){ fader.value=c.level; }
-    const pan=qs(`#pan-ch${ch}`); if(pan){ pan.value=channelState[ch].pan; }
+    const fader=qs(`#fader-ch${ch}`); if(fader) fader.value=c.level;
+    const pan=qs(`#pan-ch${ch}`); if(pan) pan.value=channelState[ch].pan;
     updateLevelReadout(ch);
     updatePanReadout(ch);
     ['fx1','fx2','mon1','mon2'].forEach(s=>updateSendKnob(ch,s,channelState[ch][s]));
     updateInputKnob(ch,'gain',channelState[ch].gain);
     updateInputKnob(ch,'lowcut',channelState[ch].lowcut);
     updateInputKnob(ch,'comp',channelState[ch].comp);
-    const labelEl=qs(`#label-ch${ch}`);
-    if(labelEl) labelEl.textContent=channelState[ch].label;
+    const labelEl=qs(`#label-ch${ch}`); if(labelEl) labelEl.textContent=channelState[ch].label;
     updateChannelButtons(ch);
     updateChannelTooltips(ch,channelState[ch].label);
     sendCC(CC_FADER,mapFaderOut(c.level),ch);
@@ -599,7 +661,7 @@ function loadScene(){
     sendCC(CC_SEND_FX1,c.fx1,ch);
     sendCC(CC_SEND_FX2,c.fx2,ch);
     sendCC(CC_SEND_MON1,c.mon1,ch);
-    if(!busPairs.mon.stereoLink) sendCC(CC_SEND_MON2,c.mon2,ch); // only if active
+    if(!busPairs.mon.stereoLink) sendCC(CC_SEND_MON2,c.mon2,ch);
     sendCC(CC_PAN,channelState[ch].pan,ch);
     if(ch<=6){
       sendCC(CC_GAIN,channelState[ch].gain,ch);
@@ -610,7 +672,10 @@ function loadScene(){
       sendCC(CC_EQ_HIMID,channelState[ch].eq.himid,ch);
       sendCC(CC_EQ_HI,channelState[ch].eq.hi,ch);
     }
-    if(ch<=2) sendCC(CC_48V,c.phantom?BOOL_ON:BOOL_OFF,ch);
+    if(ch<=2){
+      // Send present phantom state
+      sendCC(CC_48V,channelState[ch].phantom?BOOL_ON:BOOL_OFF,ch);
+    }
   });
 
   if(sc.master){
@@ -642,16 +707,12 @@ function loadScene(){
     setKnobRaw(qs('#knob-fx1-limiter'),busPairs.fx.fx1Limiter,'fx1-limiter');
     setKnobRaw(qs('#knob-fx2-limiter'),busPairs.fx.fx2Limiter,'fx2-limiter');
     setKnobRaw(qs('#knob-mon1-limiter'),busPairs.mon.mon1Limiter,'mon1-limiter');
-    if(!busPairs.mon.stereoLink){
-      setKnobRaw(qs('#knob-mon2-limiter'),busPairs.mon.mon2Limiter,'mon2-limiter');
-    }
+    if(!busPairs.mon.stereoLink) setKnobRaw(qs('#knob-mon2-limiter'),busPairs.mon.mon2Limiter,'mon2-limiter');
     const fx1=qs('#fader-fx1'); if(fx1){ fx1.value=busPairs.fx.fx1Level; updateBusReadout('lvl-fx1',busPairs.fx.fx1Level); sendCC(CC_FADER,mapFaderOut(busPairs.fx.fx1Level),FX1_CH); }
     const fx2=qs('#fader-fx2'); if(fx2){ fx2.value=busPairs.fx.fx2Level; updateBusReadout('lvl-fx2',busPairs.fx.fx2Level); sendCC(CC_FADER,mapFaderOut(busPairs.fx.fx2Level),FX2_CH); }
     const mon1=qs('#fader-mon1'); if(mon1){ mon1.value=busPairs.mon.mon1Level; updateBusReadout('lvl-mon1',busPairs.mon.mon1Level); sendCC(CC_FADER,mapFaderOut(busPairs.mon.mon1Level),MON1_CH); }
     const mon2=qs('#fader-mon2'); if(mon2){ mon2.value=busPairs.mon.mon2Level; updateBusReadout('lvl-mon2',busPairs.mon.mon2Level); if(!busPairs.mon.stereoLink) sendCC(CC_FADER,mapFaderOut(busPairs.mon.mon2Level),MON2_CH); }
-    // Apply stereo link UI after building elements
     applyStereoLinkUI();
-    // Send limiter CCs
     sendCC(MAIN_BUS_LIMITER_CC,busPairs.fx.fx1Limiter,FX1_CH);
     sendCC(MAIN_BUS_LIMITER_CC,busPairs.fx.fx2Limiter,FX2_CH);
     sendCC(MAIN_BUS_LIMITER_CC,busPairs.mon.mon1Limiter,MON1_CH);
@@ -669,6 +730,7 @@ function loadScene(){
     qsa('input[name="fx1-param2"]').forEach(r=>r.checked=(+r.value===fxState.fx1.param2));
     qsa('input[name="fx2-param2"]').forEach(r=>r.checked=(+r.value===fxState.fx2.param2));
   }
+
   setStatus('Scene loaded');
 }
 
@@ -701,6 +763,11 @@ function init(){
   updateBusReadout('lvl-fx2',busPairs.fx.fx2Level);
   updateBusReadout('lvl-mon1',busPairs.mon.mon1Level);
   updateBusReadout('lvl-mon2',busPairs.mon.mon2Level);
-  applyStereoLinkUI(); // ensure initial UI state
+  applyStereoLinkUI();
+  // Ensure phantom buttons reflect state
+  qsa('.btn-small.phantom').forEach(b=>{
+    const ch=+b.dataset.channel;
+    b.classList.toggle('active',channelState[ch].phantom);
+  });
 }
 window.addEventListener('DOMContentLoaded', init);
