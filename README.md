@@ -52,8 +52,8 @@ This software was created by *Christopher Arndt* with the assistance of GPT-5.
 
 ## License
 
-This plugin is released under the *MIT* license. Please see the
-[LICENSE.md](./LICENSE.md) file for details.
+This project is released under the *MIT* license. Please see the [LICENSE.md](./LICENSE.md) file 
+for details.
 
 
 [Behringer Flow 8]: https://www.behringer.com/product.html?modelCode=0603-AEW
