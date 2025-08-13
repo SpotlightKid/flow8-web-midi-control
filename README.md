@@ -10,8 +10,13 @@ Connect the Flow 8 via USB to your computer and turn it on. Run a local HTTP(S) 
 [httplz] on a free port, e.g. 8000) serving the root directory of this repository and open a
 browser at e.g. `http://localhost:8000/`.
 
-The Flow 8 MIDI device should be detected automatically and the browswer will ask your confirmation
-for accesing MIDI devices.
+Or you can use the latest version deployed at:
+
+    https://spotlightkid.github.io/flow8-web-midi-control/
+
+The Flow 8 MIDI device should be detected automatically and the browser will ask your confirmation
+for accessing MIDI devices.
+
 
 ## Screenshot
 
